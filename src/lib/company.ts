@@ -1,17 +1,25 @@
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 import { privacyFloor } from "@/lib/config";
 
 export async function buildCompanySummary(domain: string) {
-  const company = await db.company.findUnique({
-    where: { domain },
-    include: {
-      months: { orderBy: { month: "desc" }, take: 1 },
-      _count: { select: { ratings: true } }
-    }
-  });
-  if (!company) return null;
+  // Fetch company via Supabase REST API (works over HTTPS from serverless)
+  const { data: company, error } = await supaAdmin
+    .from("Company")
+    .select("id, domain, name, logoUrl")
+    .eq("domain", domain)
+    .single();
 
-  const month = company.months[0] ?? null;
+  if (error || !company) return null;
+
+  // Fetch latest CompanyMonth
+  const { data: months } = await supaAdmin
+    .from("CompanyMonth")
+    .select("avgScore, ratings, updatedAt")
+    .eq("companyId", company.id)
+    .order("month", { ascending: false })
+    .limit(1);
+
+  const month = months?.[0] ?? null;
   const ratingsCount = month?.ratings ?? 0;
   const privacyMet = ratingsCount >= privacyFloor;
   const estimatedVScore = ratingsCount === 0 ? 3.5 : null;
@@ -20,12 +28,12 @@ export async function buildCompanySummary(domain: string) {
     domain: company.domain,
     name: company.name,
     logoUrl: company.logoUrl,
-    vScore: privacyMet ? Number(month?.avgScore?.toFixed(1) ?? 0) : null,
+    vScore: privacyMet ? Number(Number(month?.avgScore ?? 0).toFixed(1)) : null,
     ratingsCount,
-    lastUpdated: month?.updatedAt?.toISOString() ?? null,
+    lastUpdated: month?.updatedAt ?? null,
     privacyMet,
     estimatedVScore,
-    confidence: estimatedVScore ? 0.35 : null
+    confidence: estimatedVScore ? 0.35 : null,
   };
 }
 

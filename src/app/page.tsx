@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
 async function getStats() {
-  const companyCount = await db.company.count();
-  const ratingCount = await db.rating.count();
-  return { companyCount, ratingCount };
+  const { count: companyCount } = await supaAdmin
+    .from("Company")
+    .select("id", { count: "exact", head: true });
+
+  const { count: ratingCount } = await supaAdmin
+    .from("Rating")
+    .select("id", { count: "exact", head: true });
+
+  return { companyCount: companyCount ?? 0, ratingCount: ratingCount ?? 0 };
 }
 
 export default async function HomePage() {

@@ -4,10 +4,9 @@ import { cleanOneThing } from "@/utils/textFilter";
 import { getSessionUserFromRequest, upsertUserFromEmail } from "@/lib/auth";
 import { companyNameFromDomain, buildCompanySummary } from "@/lib/company";
 import { resolveLogoUrl } from "@/lib/logo";
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 import { currentUtcMonthStart } from "@/lib/time";
 import { consumeRateLimit } from "@/lib/rateLimit";
-import { ratingUniqueKey } from "@/utils/ratingRules";
 
 const schema = z.object({ score: z.number().int().min(1).max(5), text: z.string().min(1).max(280) });
 
@@ -28,50 +27,90 @@ export async function POST(request: NextRequest) {
   const user = await upsertUserFromEmail(session.email);
   const ratingMonth = currentUtcMonthStart();
   const domain = session.emailDomain;
-  const _uniqueKey = ratingUniqueKey(user.id, "pending", ratingMonth.toISOString());
 
-  let company = await db.company.findUnique({ where: { domain } });
+  // Find or create company
+  let { data: company } = await supaAdmin
+    .from("Company")
+    .select("id, domain")
+    .eq("domain", domain)
+    .single();
+
   if (!company) {
-    company = await db.company.create({
-      data: {
+    const logoUrl = await resolveLogoUrl(domain);
+    const { data: newCompany, error } = await supaAdmin
+      .from("Company")
+      .insert({
         domain,
         name: companyNameFromDomain(domain),
-        logoUrl: await resolveLogoUrl(domain)
-      }
-    });
+        logoUrl,
+      })
+      .select("id, domain")
+      .single();
+
+    if (error || !newCompany) {
+      return NextResponse.json({ error: "Failed to create company" }, { status: 500 });
+    }
+    company = newCompany;
   }
 
   const cleanedText = cleanOneThing(parsed.data.text);
 
   try {
-    await db.$transaction(async (tx) => {
-      await tx.rating.create({
-        data: {
-          userId: user.id,
-          companyId: company!.id,
-          score: parsed.data.score,
-          ratingMonth
-        }
-      });
-
-      await tx.oneThing.create({
-        data: {
-          userId: user.id,
-          companyId: company!.id,
-          text: cleanedText,
-          ratingMonth
-        }
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 500 + Math.floor(Math.random() * 1000)));
-
-      const agg = await tx.rating.aggregate({ where: { companyId: company!.id, ratingMonth }, _avg: { score: true }, _count: { id: true } });
-      await tx.companyMonth.upsert({
-        where: { companyId_month: { companyId: company!.id, month: ratingMonth } },
-        create: { companyId: company!.id, month: ratingMonth, avgScore: agg._avg.score ?? 0, ratings: agg._count.id },
-        update: { avgScore: agg._avg.score ?? 0, ratings: agg._count.id }
-      });
+    // Insert rating
+    const { error: ratingError } = await supaAdmin.from("Rating").insert({
+      userId: user.id,
+      companyId: company.id,
+      score: parsed.data.score,
+      ratingMonth: ratingMonth.toISOString(),
     });
+
+    if (ratingError) {
+      return NextResponse.json({ error: "You already submitted a rating for this month." }, { status: 409 });
+    }
+
+    // Insert one-thing
+    await supaAdmin.from("OneThing").insert({
+      userId: user.id,
+      companyId: company.id,
+      text: cleanedText,
+      ratingMonth: ratingMonth.toISOString(),
+    });
+
+    // Small delay for consistency
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Recompute company month aggregates
+    const { data: ratings } = await supaAdmin
+      .from("Rating")
+      .select("score")
+      .eq("companyId", company.id)
+      .eq("ratingMonth", ratingMonth.toISOString());
+
+    const scores = (ratings ?? []).map((r: { score: number }) => r.score);
+    const avgScore = scores.length > 0 ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length : 0;
+
+    // Upsert company month
+    const { data: existingMonth } = await supaAdmin
+      .from("CompanyMonth")
+      .select("id")
+      .eq("companyId", company.id)
+      .eq("month", ratingMonth.toISOString())
+      .single();
+
+    if (existingMonth) {
+      await supaAdmin
+        .from("CompanyMonth")
+        .update({ avgScore, ratings: scores.length, updatedAt: new Date().toISOString() })
+        .eq("id", existingMonth.id);
+    } else {
+      await supaAdmin.from("CompanyMonth").insert({
+        companyId: company.id,
+        month: ratingMonth.toISOString(),
+        avgScore,
+        ratings: scores.length,
+        updatedAt: new Date().toISOString(),
+      });
+    }
   } catch {
     return NextResponse.json({ error: "You already submitted a rating for this month." }, { status: 409 });
   }

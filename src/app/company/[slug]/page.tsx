@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { TrendChart } from "@/components/TrendChart";
 import { buildCompanySummary } from "@/lib/company";
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 import { privacyFloor } from "@/lib/config";
 import { currentUtcMonthStart } from "@/lib/time";
 
@@ -11,24 +11,41 @@ async function getCompanyData(domain: string) {
   const summary = await buildCompanySummary(domain);
   if (!summary) return null;
 
-  const trend = await db.companyMonth.findMany({
-    where: { company: { domain } },
-    orderBy: { month: "asc" },
-    select: { month: true, avgScore: true, ratings: true },
-  });
+  // Get company id for sub-queries
+  const { data: company } = await supaAdmin
+    .from("Company")
+    .select("id")
+    .eq("domain", domain)
+    .single();
 
-  const month = currentUtcMonthStart();
-  const oneThings = await db.oneThing.findMany({
-    where: { company: { domain }, ratingMonth: month },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, text: true },
-    take: 20,
-  });
+  if (!company) return null;
+
+  // Fetch trend data
+  const { data: trendRows } = await supaAdmin
+    .from("CompanyMonth")
+    .select("month, avgScore, ratings")
+    .eq("companyId", company.id)
+    .order("month", { ascending: true });
+
+  const trend = (trendRows ?? []).map((t: { month: string; avgScore: number }) => ({
+    month: t.month.slice(0, 7),
+    avgScore: t.avgScore,
+  }));
+
+  // Fetch one-things for current month
+  const month = currentUtcMonthStart().toISOString();
+  const { data: oneThingRows } = await supaAdmin
+    .from("OneThing")
+    .select("id, text")
+    .eq("companyId", company.id)
+    .eq("ratingMonth", month)
+    .order("createdAt", { ascending: false })
+    .limit(20);
 
   return {
     summary,
-    trend: trend.map((t) => ({ month: t.month.toISOString().slice(0, 7), avgScore: t.avgScore })),
-    oneThings,
+    trend,
+    oneThings: oneThingRows ?? [],
   };
 }
 
@@ -135,7 +152,7 @@ export default async function CompanyPage({ params }: { params: { slug: string }
               <h3 className="mb-4 text-sm font-medium text-gray-400">What CSMs are saying this month</h3>
               {oneThings.length > 0 ? (
                 <ul className="space-y-3">
-                  {oneThings.map((item) => (
+                  {oneThings.map((item: { id: string; text: string }) => (
                     <li key={item.id} className="rounded-lg bg-gray-50 p-4 text-sm leading-relaxed text-gray-700">
                       &ldquo;{item.text}&rdquo;
                     </li>

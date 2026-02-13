@@ -1,4 +1,4 @@
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 
 const ADJECTIVES = ["bright", "steady", "brave", "calm", "keen", "kind", "swift", "wise"];
 const ANIMALS = ["otter", "falcon", "lynx", "orca", "panda", "heron", "tiger", "fox"];
@@ -17,8 +17,12 @@ export function generateHandle(existing = new Set<string>()) {
 export async function generateUniqueHandleFromDb() {
   for (let i = 0; i < 200; i += 1) {
     const candidate = generateHandle();
-    const found = await db.user.findUnique({ where: { handle: candidate }, select: { id: true } });
-    if (!found) return candidate;
+    const { data } = await supaAdmin
+      .from("User")
+      .select("id")
+      .eq("handle", candidate)
+      .single();
+    if (!data) return candidate;
   }
   throw new Error("Unable to generate a unique handle in database.");
 }

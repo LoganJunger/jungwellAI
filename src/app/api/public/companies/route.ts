@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 import { withCors } from "@/lib/cors";
 import { consumeRateLimit } from "@/lib/rateLimit";
 
@@ -12,6 +12,13 @@ export async function GET(request: NextRequest) {
   const allowed = await consumeRateLimit(`public:companies:${ip}`, 60, 3600);
   if (!allowed.allowed) return withCors(NextResponse.json({ error: "Too many requests" }, { status: 429 }));
 
-  const items = await db.company.findMany({ select: { name: true, domain: true, logoUrl: true }, orderBy: { name: "asc" }, take: 100 });
+  const { data: items, error } = await supaAdmin
+    .from("Company")
+    .select("name, domain, logoUrl")
+    .order("name", { ascending: true })
+    .limit(100);
+
+  if (error) return withCors(NextResponse.json([], { status: 500 }));
+
   return withCors(NextResponse.json(items));
 }

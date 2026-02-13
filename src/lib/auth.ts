@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { adminEmails, blockedDomains } from "@/lib/config";
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 import { generateHandle } from "@/utils/handleGenerator";
 
 export type SessionUser = {
@@ -24,7 +24,7 @@ export function getSessionUserFromRequest(request: NextRequest): SessionUser | n
   return {
     email,
     emailDomain: getEmailDomain(email),
-    isAdmin: adminEmails.has(email)
+    isAdmin: adminEmails.has(email),
   };
 }
 
@@ -35,16 +35,34 @@ export async function upsertUserFromEmail(email: string) {
     throw new Error("Please use your work email.");
   }
 
-  const existing = await db.user.findUnique({ where: { email: normalized } });
+  // Check if user already exists
+  const { data: existing } = await supaAdmin
+    .from("User")
+    .select("*")
+    .eq("email", normalized)
+    .single();
+
   if (existing) return existing;
 
-  const handles = new Set((await db.user.findMany({ select: { handle: true } })).map((u) => u.handle));
-  return db.user.create({
-    data: {
+  // Generate a unique handle
+  const { data: allHandles } = await supaAdmin
+    .from("User")
+    .select("handle");
+
+  const handleSet = new Set((allHandles ?? []).map((u: { handle: string }) => u.handle));
+  const handle = generateHandle(handleSet);
+
+  const { data: newUser, error } = await supaAdmin
+    .from("User")
+    .insert({
       email: normalized,
       emailDomain,
-      handle: generateHandle(handles),
-      isAdmin: adminEmails.has(normalized)
-    }
-  });
+      handle,
+      isAdmin: adminEmails.has(normalized),
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error("Failed to create user: " + error.message);
+  return newUser;
 }

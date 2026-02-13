@@ -1,21 +1,37 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { supaAdmin } from "@/lib/supabaseAdmin";
 import { currentUtcMonthStart } from "@/lib/time";
 import { privacyFloor } from "@/lib/config";
 
 export async function GET(_: Request, { params }: { params: { domain: string } }) {
-  const company = await db.company.findUnique({ where: { domain: params.domain.toLowerCase() } });
-  if (!company) return NextResponse.json({ items: [] });
+  const { data: company, error: companyError } = await supaAdmin
+    .from("Company")
+    .select("id")
+    .eq("domain", params.domain.toLowerCase())
+    .single();
 
-  const month = await db.companyMonth.findUnique({ where: { companyId_month: { companyId: company.id, month: currentUtcMonthStart() } } });
-  if (!month || month.ratings < privacyFloor) return NextResponse.json({ items: [] });
+  if (companyError || !company) return NextResponse.json({ items: [] });
 
-  const items = await db.oneThing.findMany({
-    where: { companyId: company.id, ratingMonth: currentUtcMonthStart() },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    select: { id: true, text: true, createdAt: true }
-  });
+  const currentMonth = currentUtcMonthStart();
+
+  const { data: month, error: monthError } = await supaAdmin
+    .from("CompanyMonth")
+    .select("ratings")
+    .eq("companyId", company.id)
+    .eq("month", currentMonth.toISOString())
+    .single();
+
+  if (monthError || !month || month.ratings < privacyFloor) return NextResponse.json({ items: [] });
+
+  const { data: items, error: itemsError } = await supaAdmin
+    .from("OneThing")
+    .select("id, text, createdAt")
+    .eq("companyId", company.id)
+    .eq("ratingMonth", currentMonth.toISOString())
+    .order("createdAt", { ascending: false })
+    .limit(20);
+
+  if (itemsError) return NextResponse.json({ items: [] });
 
   return NextResponse.json({ items });
 }
