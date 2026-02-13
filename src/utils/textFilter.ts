@@ -1,4 +1,5 @@
-import * as BadWordsFilter from "bad-words";
+/* eslint-disable @typescript-eslint/no-require-imports */
+const BadWordsFilter = require("bad-words") as { new (): { clean(s: string): string } };
 
 const EMAIL_REGEX = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
 const PHONE_REGEX = /\+?\d[\d\s().-]{7,}\d/g;
