@@ -9,23 +9,57 @@
   --bg-light: #F7F7F7;
 }
 
+* { box-sizing: border-box; }
+
 body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   color: var(--text-dark);
   background: var(--bg-light);
+  -webkit-font-smoothing: antialiased;
 }
 
 @layer utilities {
   .brand-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+    background-image: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   }
-
+  .brand-gradient-bg {
+    background-image: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+  }
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold text-white transition-opacity;
-    background-image: linear-gradient(90deg, var(--primary-start), var(--primary-end));
+    @apply inline-flex items-center justify-center rounded-lg px-6 py-3 text-sm font-semibold text-white transition-all duration-200;
+    background-image: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   }
-
   .btn-primary:hover {
-    @apply opacity-90;
+    @apply opacity-90 shadow-lg;
+    transform: translateY(-1px);
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-all duration-200;
+  }
+  .btn-secondary:hover {
+    @apply border-gray-300 bg-gray-50 shadow-sm;
+  }
+  .card {
+    @apply rounded-xl border border-gray-100 bg-white shadow-sm transition-all duration-200;
+  }
+  .card-hover:hover {
+    @apply shadow-md border-gray-200;
+    transform: translateY(-2px);
+  }
+  .score-badge {
+    @apply inline-flex items-center justify-center rounded-lg px-3 py-1 text-sm font-bold text-white;
+    background-image: linear-gradient(135deg, var(--primary-start), var(--primary-end));
+    min-width: 48px;
+  }
+  .score-badge-lg {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-3 text-3xl font-black text-white;
+    background-image: linear-gradient(135deg, var(--primary-start), var(--primary-end));
   }
 }
+
+.score-high { background: linear-gradient(135deg, #10B981, #059669) !important; }
+.score-mid { background: linear-gradient(135deg, var(--primary-start), var(--primary-end)) !important; }
+.score-low { background: linear-gradient(135deg, #EF4444, #DC2626) !important; }
+
+html { scroll-behavior: smooth; }

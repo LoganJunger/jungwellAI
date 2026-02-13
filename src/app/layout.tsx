@@ -5,16 +5,21 @@ import { Footer } from "@/components/Footer";
 import { appConfig } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: appConfig.siteName,
-  description: "Track CS team happiness and act on what improves it."
+  title: `${appConfig.siteName} | CS Team Happiness Ratings`,
+  description: "Real CSM ratings. Anonymous feedback. Clear trends. Discover which CS teams are thriving."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+      </head>
+      <body className="flex min-h-screen flex-col">
         <Header />
-        <div className="mx-auto min-h-[calc(100vh-140px)] w-full max-w-6xl px-6 py-8">{children}</div>
+        <main className="flex-1">{children}</main>
         <Footer />
       </body>
     </html>
