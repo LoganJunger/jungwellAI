@@ -1,5 +1,6 @@
 import { companies, findCompany, searchCompanies } from "@/data/mockData";
 import { cleanOneThing } from "@/utils/textFilter";
+import { getPrimaryLogoUrl } from "@/lib/logo";
 
 type Submission = { domain: string; score: number; text: string; createdAt: string };
 const submissions: Submission[] = [];
@@ -40,7 +41,7 @@ export function addRating(input: { domain: string; score: number; text: string }
       summary: {
         domain,
         name: domain.split(".")[0],
-        logoUrl: `https://logo.clearbit.com/${domain}`,
+        logoUrl: getPrimaryLogoUrl(domain),
         vScore: null,
         ratingsCount: 1,
         privacyMet: false,

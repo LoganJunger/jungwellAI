@@ -1,3 +1,4 @@
+import { getPrimaryLogoUrl } from "@/lib/logo";
 export type TrendPoint = { month: string; avgScore: number; ratings: number };
 export type CompanySummary = {
   name: string;
@@ -27,7 +28,7 @@ export const companies: CompanySummary[] = [
   {
     name: "HubSpot",
     domain: "hubspot.com",
-    logoUrl: "https://logo.clearbit.com/hubspot.com",
+    logoUrl: getPrimaryLogoUrl("hubspot.com"),
     ratingsCount: 41,
     lastUpdated: "2026-02-10",
     vScore: 4.2,
@@ -38,7 +39,7 @@ export const companies: CompanySummary[] = [
   {
     name: "Zendesk",
     domain: "zendesk.com",
-    logoUrl: "https://logo.clearbit.com/zendesk.com",
+    logoUrl: getPrimaryLogoUrl("zendesk.com"),
     ratingsCount: 27,
     lastUpdated: "2026-02-08",
     vScore: 3.7,
@@ -49,7 +50,7 @@ export const companies: CompanySummary[] = [
   {
     name: "Acme Cloud",
     domain: "acmecloud.io",
-    logoUrl: "https://logo.clearbit.com/acmecloud.io",
+    logoUrl: getPrimaryLogoUrl("acmecloud.io"),
     ratingsCount: 2,
     lastUpdated: "2026-02-06",
     vScore: null,

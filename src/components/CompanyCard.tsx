@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { CompanySummary } from "@/data/mockData";
+import { LogoImage } from "@/components/LogoImage";
 
 export function CompanyCard({ company }: { company: CompanySummary }) {
   return (
     <Link href={`/company/${company.domain.replace(/\./g, "-")}`} className="card">
       <div className="row">
-        <img src={company.logoUrl} alt={`${company.name} logo`} className="logo" />
+        <LogoImage domain={company.domain} companyName={company.name} className="logo" />
         <div>
           <h3>{company.name}</h3>
           <p>{company.domain}</p>

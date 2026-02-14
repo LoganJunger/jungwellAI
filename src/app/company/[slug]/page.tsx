@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Sparkline } from "@/components/Sparkline";
 import { findCompany } from "@/data/mockData";
+import { LogoImage } from "@/components/LogoImage";
 
 export default function CompanyPage({ params }: { params: { slug: string } }) {
   const company = findCompany(params.slug);
@@ -10,7 +11,7 @@ export default function CompanyPage({ params }: { params: { slug: string } }) {
   return (
     <main>
       <div className="row">
-        <img src={company.logoUrl} alt={`${company.name} logo`} className="logo" />
+        <LogoImage domain={company.domain} companyName={company.name} className="logo" />
         <div>
           <h1>{company.name}</h1>
           <p className="muted">{company.domain}</p>
