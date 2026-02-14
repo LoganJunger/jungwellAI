@@ -1,12 +1,19 @@
-const HUBSPOT_LOGO_BASE = process.env.NEXT_PUBLIC_HUBSPOT_LOGO_BASE_URL || "https://logo.hubspot.com";
+const LOGO_BASE = process.env.NEXT_PUBLIC_LOGO_API_BASE_URL || "https://img.logo.dev";
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_LOGO_PUBLISHABLE_KEY || "";
 
 /**
- * Clearbit free logo URLs are deprecated/sunset.
- * Build the HubSpot logo URL (or custom compatible base via env override).
+ * Build primary logo URL from provider endpoint.
+ * Default provider endpoint is Logo.dev-compatible: https://img.logo.dev/{domain}?token=pk_...
  */
 export function getPrimaryLogoUrl(domain: string): string {
   const safeDomain = domain.trim().toLowerCase();
-  return `${HUBSPOT_LOGO_BASE}/${safeDomain}`;
+  const url = new URL(`${LOGO_BASE.replace(/\/$/, "")}/${safeDomain}`);
+
+  if (PUBLISHABLE_KEY) {
+    url.searchParams.set("token", PUBLISHABLE_KEY);
+  }
+
+  return url.toString();
 }
 
 export function getFaviconUrl(domain: string): string {

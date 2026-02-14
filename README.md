@@ -17,7 +17,7 @@ A polished Next.js App Router implementation scaffold for the Var Nöjd module, 
   - `GET /api/companies/search?q=`
   - `POST /api/rate`
 - Prisma schema included for production database wiring.
-- Logo pipeline updated for Clearbit sunset: HubSpot logo endpoint first, then `https://{domain}/favicon.ico`, then generated SVG monogram fallback.
+- Logo pipeline updated for Clearbit sunset: tokenized logo API endpoint (`img.logo.dev` by default) first, then `https://{domain}/favicon.ico`, then generated SVG monogram fallback.
 
 ## Run
 
@@ -31,4 +31,12 @@ npm run dev
 
 ## Optional env
 
-- `NEXT_PUBLIC_HUBSPOT_LOGO_BASE_URL` (default: `https://logo.hubspot.com`)
+- `NEXT_PUBLIC_LOGO_API_BASE_URL` (default: `https://img.logo.dev`)
+- `NEXT_PUBLIC_LOGO_API_HOST` (default: `img.logo.dev`)
+- `NEXT_PUBLIC_LOGO_PUBLISHABLE_KEY` (publishable/browser-safe key)
+- `LOGO_SECRET_KEY` (server-only; never commit real values)
+
+
+## Security note
+
+If a real API secret key is ever shared in chat or accidentally exposed, rotate it immediately in your provider dashboard and store the replacement only in secure runtime environment variables.
