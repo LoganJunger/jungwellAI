@@ -5,7 +5,9 @@ export const BRAND = {
   colors: {
     primaryStart: "#FF5C5C",
     primaryEnd: "#F28C13",
-    textDark: "#111111",
-    bgLight: "#F7F7F7"
+    ink900: "#111111",
+    ink700: "#2F2F38",
+    bgLight: "#F7F7F7",
+    card: "#FFFFFF"
   }
 };

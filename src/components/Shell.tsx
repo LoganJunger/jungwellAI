@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BRAND } from "@/lib/brand";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -9,7 +10,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Link href="/companies">Companies</Link>
           <Link href="/rate">Rate</Link>
           <Link href="/account">Account</Link>
-          <a href="https://jungwell.com" target="_blank">A Jungwell.ai Workbench module</a>
+          <a href="https://jungwell.com" target="_blank">{BRAND.workbenchStrap}</a>
         </nav>
       </header>
       {children}

@@ -11,6 +11,9 @@ export function LogoImage({ domain, companyName, className = "logo" }: { domain:
       src={failed ? getGenericStartupLogoDataUrl(companyName) : getPrimaryLogoUrl(domain)}
       alt={`${companyName} logo`}
       className={className}
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
       onError={() => setFailed(true)}
     />
   );
