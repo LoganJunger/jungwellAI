@@ -17,7 +17,7 @@ A polished Next.js App Router implementation scaffold for the Var Nöjd module, 
   - `GET /api/companies/search?q=`
   - `POST /api/rate`
 - Prisma schema included for production database wiring.
-- Logo pipeline updated for Clearbit sunset: tokenized logo API endpoint (`img.logo.dev` by default) first, then `https://{domain}/favicon.ico`, then generated SVG monogram fallback.
+- Logo pipeline updated for Clearbit sunset: tokenized logo API endpoint (`img.logo.dev` by default) first, then a generic Web 2.0-style startup logo fallback SVG.
 
 ## Run
 
