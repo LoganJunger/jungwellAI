@@ -1,0 +1,27 @@
+:root { --text:#111111; --bg:#f7f7f7; --start:#FF5C5C; --end:#F28C13; }
+* { box-sizing: border-box; }
+body { margin:0; background: radial-gradient(1200px 500px at 20% -10%, #fff1f1, transparent), var(--bg); color:var(--text); font-family: Inter, Montserrat, system-ui, sans-serif; }
+a { color: inherit; text-decoration: none; }
+.site { max-width: 1120px; margin: 0 auto; padding: 20px 24px 40px; }
+.header { display:flex; justify-content:space-between; gap:20px; align-items:center; padding:16px 0 24px; }
+.brand { font-size: 1.8rem; font-weight: 800; }
+.brand-gradient, .btn-primary { background: linear-gradient(90deg,var(--start),var(--end)); -webkit-background-clip:text; background-clip:text; color: transparent; }
+.nav { display:flex; flex-wrap:wrap; gap:18px; font-weight:600; }
+.footer { border-top:1px solid #e6e6e6; margin-top: 48px; padding-top: 16px; color:#595959; }
+.hero { padding: 48px 0 22px; }
+.hero h1 { font-size: clamp(2rem,4vw,4rem); margin:0 0 12px; line-height:1.05; letter-spacing:-0.02em; }
+.sub { color:#444; max-width: 680px; font-size:1.1rem; }
+.actions { display:flex; gap:12px; margin-top: 22px; }
+.btn { padding:12px 18px; border-radius: 12px; border:1px solid #111; font-weight:700; background:#fff; }
+.btn-primary { color:#fff; background: linear-gradient(90deg,var(--start),var(--end)); border:0; box-shadow: 0 8px 24px rgba(242,140,19,.25); }
+.grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top: 18px; }
+.card { background:#fff; border:1px solid #ebebeb; border-radius:16px; padding:14px; display:grid; gap:12px; box-shadow:0 12px 30px rgba(0,0,0,.04); }
+.row { display:flex; align-items:center; gap:12px; }
+.logo { width:42px; height:42px; border-radius:10px; background:#fafafa; border:1px solid #eee; }
+.pill { font-weight:700; font-size:.85rem; background:#f4f4f4; border-radius:999px; padding:8px 10px; width:max-content; }
+.input, textarea, select { width:100%; padding:12px; border:1px solid #ddd; border-radius: 12px; font-size: 1rem; background:#fff; }
+.panel { background:#fff; border:1px solid #ececec; border-radius: 16px; padding: 18px; margin-top:16px; }
+.sparkline { width:100%; background:#fff; border-radius: 16px; border:1px solid #ececec; }
+.kpis { display:grid; grid-template-columns: repeat(3,minmax(120px,1fr)); gap:10px; margin:16px 0; }
+.kpis .panel { margin-top:0; }
+.muted { color:#666; }

@@ -1,0 +1,62 @@
+datasource db { provider = "postgresql"; url = env("DATABASE_URL") }
+generator client { provider = "prisma-client-js" }
+
+model User {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  email       String   @unique
+  emailDomain String
+  handle      String   @unique
+  isAdmin     Boolean  @default(false)
+  ratings     Rating[]
+  oneThings   OneThing[]
+}
+
+model Company {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  name       String
+  domain     String    @unique
+  logoUrl    String?
+  ratings    Rating[]
+  oneThings  OneThing[]
+  months     CompanyMonth[]
+  @@index([name])
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  ratingMonth DateTime
+  score       Int
+  userId      String
+  companyId   String
+  user        User     @relation(fields: [userId], references: [id])
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@unique([userId, companyId, ratingMonth])
+  @@index([companyId, ratingMonth])
+}
+
+model OneThing {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  ratingMonth DateTime
+  text        String
+  userId      String
+  companyId   String
+  user        User     @relation(fields: [userId], references: [id])
+  company     Company  @relation(fields: [companyId], references: [id])
+  @@index([companyId, ratingMonth, createdAt])
+}
+
+model CompanyMonth {
+  id         String   @id @default(cuid())
+  companyId  String
+  month      DateTime
+  avgScore   Float
+  ratings    Int
+  updatedAt  DateTime @updatedAt
+  company    Company  @relation(fields: [companyId], references: [id])
+  @@unique([companyId, month])
+  @@index([month])
+}
